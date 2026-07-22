@@ -1,425 +1,359 @@
 "use client";
 
-import { useEvent } from "@/context/EventContext";
 
+import {
+  useEvent
+} from "@/context/EventContext";
 
 
 
 
-export default function EventBalances() {
 
 
-  const {
 
-    currentEvent,
+export default function EventBalances(){
 
-  } = useEvent();
 
 
 
 
+const {
 
+currentEvent,
 
+}=useEvent();
 
-  if(!currentEvent){
 
 
-    return (
 
-      <section
 
-        className="
-          rounded-xl
-          border
-          bg-white
-          p-6
-        "
 
-      >
 
-        <p className="text-gray-500">
 
-          Event not loaded.
+if(!currentEvent){
 
-        </p>
 
+return (
 
-      </section>
+<section
 
-    );
+className="
+rounded-xl
+border
+bg-white
+p-6
+"
 
+>
 
-  }
+<p className="text-gray-500">
 
+Event not loaded.
 
+</p>
 
 
+</section>
 
+);
 
 
+}
 
-  const balances: Record<string, number> = {};
 
 
 
 
 
 
+const members =
 
+currentEvent.members || [];
 
-  // Initialize members
 
-  currentEvent.members.forEach(
 
-    (member)=>{
+const expenses =
 
+currentEvent.expenses || [];
 
-      balances[member.name] = 0;
 
 
-    }
 
-  );
 
 
 
 
 
+const balances:{[key:string]:number} = {};
 
 
 
 
-  // Calculate balances
 
-  currentEvent.expenses.forEach(
 
-    (expense)=>{
 
+/*
 
+Initialize every member balance
 
-      // Person who paid gets credit
+*/
 
-      balances[expense.paidBy] =
+members.forEach(member=>{
 
-        (balances[expense.paidBy] || 0)
 
-        +
+balances[member.name]=0;
 
-        expense.amount;
 
+});
 
 
 
 
 
 
-      // Participants owe their share
 
-      expense.participants.forEach(
 
-        (participant)=>{
 
+/*
 
-          balances[participant.name] =
+Calculate balances
 
-            (balances[participant.name] || 0)
 
-            -
+Positive number =
+person should receive money
 
-            participant.amount;
 
+Negative number =
+person owes money
 
-        }
 
-      );
+*/
 
 
+expenses.forEach(expense=>{
 
-    }
 
-  );
 
 
 
 
+// Person who paid gets credit
 
+balances[expense.paidBy] +=
 
+expense.amount;
 
 
 
-  return (
 
-    <section
 
-      className="
-        rounded-xl
-        border
-        bg-white
-        p-6
-      "
 
-    >
 
 
+// Participants owe their share
 
+expense.participants.forEach(participant=>{
 
-      <div className="mb-6">
 
+balances[participant.name] -=
 
-        <h2
+participant.amount;
 
-          className="
-            text-2xl
-            font-bold
-            text-gray-900
-          "
 
-        >
+});
 
-          Balances
 
-        </h2>
 
+});
 
 
 
-        <p
 
-          className="
-            mt-1
-            text-sm
-            text-gray-500
-          "
 
-        >
 
-          See who owes money and who should receive money.
 
-        </p>
 
 
-      </div>
+return (
 
+<section
 
+className="
+rounded-2xl
+border
+bg-white
+p-6
+"
 
+>
 
 
 
+<h2
 
+className="
+text-2xl
+font-bold
+mb-5
+"
 
+>
 
-      <div
+Balances
 
-        className="
-          space-y-4
-        "
+</h2>
 
-      >
 
 
 
-        {
 
-          Object.entries(balances).map(
 
-            ([name,amount])=>(
 
+<div
 
-              <div
+className="
+space-y-3
+"
 
-                key={name}
+>
 
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  rounded-xl
-                  bg-gray-50
-                  p-4
-                "
 
-              >
 
+{
 
+members.map(member=>{
 
 
-                <div
+const balance =
 
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                  "
+balances[member.name] || 0;
 
-                >
 
 
 
-                  <div
 
-                    className="
-                      flex
-                      h-10
-                      w-10
-                      items-center
-                      justify-center
-                      rounded-full
-                      bg-gray-200
-                      font-semibold
-                    "
 
-                  >
+return (
 
-                    {
+<div
 
-                      name
-                        .charAt(0)
-                        .toUpperCase()
+key={member.id}
 
-                    }
+className="
+flex
+justify-between
+rounded-xl
+bg-gray-50
+p-4
+"
 
+>
 
-                  </div>
 
 
+<div>
 
 
+<p className="font-medium">
 
-                  <span className="font-medium">
+{member.name}
 
-                    {name}
+</p>
 
-                  </span>
 
 
+</div>
 
-                </div>
 
 
 
 
 
 
+<div
 
+className={
 
+balance > 0
 
-                <div>
+?
 
+"text-green-600 font-bold"
 
-                  {
+:
 
-                    amount > 0 && (
+balance < 0
 
-                      <span
+?
 
-                        className="
-                          font-semibold
-                          text-green-600
-                        "
+"text-red-600 font-bold"
 
-                      >
+:
 
-                        Gets back $
+"text-gray-500"
 
-                        {amount.toFixed(2)}
+}
 
+>
 
-                      </span>
 
+{
 
-                    )
+balance > 0
 
-                  }
+?
 
+`Gets back $${balance.toFixed(2)}`
 
 
+:
 
+balance < 0
 
+?
 
+`Owes $${Math.abs(balance).toFixed(2)}`
 
-                  {
 
-                    amount < 0 && (
+:
 
-                      <span
+"Settled"
 
-                        className="
-                          font-semibold
-                          text-red-600
-                        "
+}
 
-                      >
 
-                        Owes $
 
-                        {Math.abs(amount).toFixed(2)}
+</div>
 
 
-                      </span>
 
 
-                    )
 
-                  }
 
+</div>
 
 
+);
 
 
 
+})
 
-                  {
 
-                    amount === 0 && (
+}
 
-                      <span
 
-                        className="
-                          font-semibold
-                          text-gray-500
-                        "
 
-                      >
+</div>
 
-                        Settled
 
-                      </span>
 
 
-                    )
 
-                  }
+</section>
 
 
+);
 
-
-
-                </div>
-
-
-
-
-
-              </div>
-
-
-            )
-
-
-          )
-
-        }
-
-
-
-      </div>
-
-
-
-
-
-    </section>
-
-  );
 
 }

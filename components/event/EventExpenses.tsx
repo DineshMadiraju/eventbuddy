@@ -1,93 +1,101 @@
 "use client";
 
-import { useState } from "react";
 
-import AddExpenseModal from "@/components/event/AddExpenseModal";
-import ExpenseCard from "@/components/event/ExpenseCard";
+import {
+  useState
+} from "react";
 
-import { useEvent } from "@/context/EventContext";
 
+import {
+  useEvent
+} from "@/context/EventContext";
 
 
+import AddExpenseModal
+from "@/components/event/AddExpenseModal";
 
 
+import EditExpenseModal
+from "@/components/event/EditExpenseModal";
 
 
-export default function EventExpenses() {
+import ExpenseCard
+from "@/components/event/ExpenseCard";
 
 
-  const {
+import {
+  Expense
+} from "@/context/EventTypes";
 
-    currentEvent,
 
-    updateCurrentEvent,
 
-  } = useEvent();
 
 
 
 
+export default function EventExpenses(){
 
 
 
-  const [
 
-    showAddExpense,
 
-    setShowAddExpense
+const {
 
-  ] = useState(false);
+currentEvent,
 
+addExpense,
 
+updateExpense,
 
+}=useEvent();
 
 
 
 
 
 
-  if(!currentEvent){
 
+const [showAddExpense,setShowAddExpense]=
 
-    return (
+useState(false);
 
-      <section
 
-        className="
-          rounded-2xl
-          border
-          bg-white
-          p-6
-        "
 
-      >
 
-        <p className="text-gray-500">
+const [editingExpense,setEditingExpense]=
 
-          Event not loaded.
+useState<Expense|null>(null);
 
-        </p>
 
 
-      </section>
 
-    );
 
 
-  }
 
+if(!currentEvent){
 
 
+return (
 
+<div
 
+className="
+rounded-xl
+border
+bg-white
+p-6
+"
 
+>
 
+Event not loaded.
 
+</div>
 
-  const expenses =
+);
 
-    currentEvent.expenses;
 
+}
 
 
 
@@ -95,298 +103,270 @@ export default function EventExpenses() {
 
 
 
+const expenses =
 
-  const handleAddExpense = (
+currentEvent.expenses || [];
 
-    expense: typeof expenses[number]
 
-  )=>{
 
 
 
-    updateCurrentEvent({
 
+const totalSpent =
 
-      ...currentEvent,
+expenses.reduce(
 
+(total,item)=>
 
-      expenses:[
+total + item.amount,
 
-        ...currentEvent.expenses,
+0
 
-        expense,
+);
 
-      ],
 
 
-    });
 
 
 
-    setShowAddExpense(false);
 
 
+return (
 
-  };
+<section
 
+className="
+space-y-6
+"
 
+>
 
 
 
 
 
+<div
 
+className="
+flex
+justify-between
+items-center
+"
 
-  return (
+>
 
-    <section
 
-      className="
-        rounded-2xl
-        border
-        bg-white
-        p-6
-      "
+<div>
 
-    >
 
+<h2 className="text-2xl font-bold">
 
+Expenses
 
+</h2>
 
 
+<p className="text-gray-500">
 
+Total:
 
-      <div
+${totalSpent.toFixed(2)}
 
-        className="
-          mb-6
-          flex
-          items-center
-          justify-between
-        "
+</p>
 
-      >
 
+</div>
 
 
-        <div>
 
 
-          <h2
 
-            className="
-              text-2xl
-              font-bold
-              text-gray-900
-            "
 
-          >
 
-            Expenses
+<button
 
-          </h2>
+onClick={()=>setShowAddExpense(true)}
 
+className="
+rounded-lg
+bg-blue-600
+px-5
+py-3
+text-white
+"
 
+>
 
++ Add Expense
 
-          <p
+</button>
 
-            className="
-              mt-1
-              text-sm
-              text-gray-500
-            "
 
-          >
 
-            Track all event expenses
 
-          </p>
+</div>
 
 
-        </div>
 
 
 
 
 
 
+<div
 
+className="
+space-y-4
+"
 
+>
 
-        <button
 
-          onClick={()=>
+{
 
+expenses.map(expense=>(
 
-            setShowAddExpense(true)
 
+<ExpenseCard
 
-          }
 
+key={expense.id}
 
-          className="
-            rounded-lg
-            bg-blue-600
-            px-5
-            py-3
-            font-medium
-            text-white
-            hover:bg-blue-700
-          "
 
-        >
+id={expense.id}
 
-          + Add Expense
 
-        </button>
+title={expense.title}
 
 
+description={expense.description}
 
 
+category={expense.category}
 
-      </div>
 
+amount={expense.amount}
 
 
+paidBy={expense.paidBy}
 
 
+participants={expense.participants}
 
 
 
+onEdit={()=>
 
 
+setEditingExpense(expense)
 
 
-      {
+}
 
-        expenses.length === 0 ?
 
 
-        (
+/>
 
-          <div
 
-            className="
-              rounded-xl
-              bg-gray-50
-              p-6
-              text-center
-              text-gray-500
-            "
+))
 
-          >
 
-            No expenses added yet.
+}
 
-          </div>
 
 
-        )
+</div>
 
 
-        :
 
 
-        (
 
-          <div
 
-            className="
-              space-y-4
-            "
 
-          >
 
 
-            {
+<AddExpenseModal
 
 
-              expenses.map(
+open={showAddExpense}
 
-                (expense,index)=>(
 
+onClose={()=>setShowAddExpense(false)}
 
-                  <ExpenseCard
 
+onAddExpense={(expense)=>{
 
-                    key={index}
 
+addExpense(expense);
 
-                    title={expense.title}
 
+setShowAddExpense(false);
 
-                    amount={expense.amount}
 
+}}
 
-                    paidBy={expense.paidBy}
 
+/>
 
-                    participants={
 
-                      expense.participants
 
-                    }
 
 
-                  />
 
 
-                )
 
+<EditExpenseModal
 
-              )
 
+open={
 
-            }
+editingExpense !== null
 
+}
 
 
-          </div>
+expense={editingExpense}
 
 
-        )
 
+onClose={()=>
 
-      }
 
+setEditingExpense(null)
 
 
+}
 
 
 
 
+onSave={(expense)=>{
 
 
-      <AddExpenseModal
+updateExpense(
 
+expense.id,
 
-        open={showAddExpense}
+expense
 
+);
 
-        onClose={()=>
 
+setEditingExpense(null);
 
-          setShowAddExpense(false)
 
+}}
 
-        }
 
+/>
 
 
-        onAddExpense={handleAddExpense}
 
 
 
-      />
+</section>
 
+);
 
-
-
-
-    </section>
-
-
-  );
 
 }

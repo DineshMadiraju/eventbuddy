@@ -1,38 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useState
+} from "react";
 
-import { useEvent } from "@/context/EventContext";
+
+import {
+  Expense
+} from "@/context/EventTypes";
+
+
+import {
+  useEvent
+} from "@/context/EventContext";
+
+
 
 
 
 type AddExpenseModalProps = {
 
-  open:boolean;
+  open: boolean;
 
-  onClose:()=>void;
+  onClose: () => void;
 
-  onAddExpense:(
-
-    expense:{
-
-      title:string;
-
-      amount:number;
-
-      paidBy:string;
-
-      participants:{
-
-        name:string;
-
-        amount:number;
-
-      }[];
-
-    }
-
-  )=>void;
+  onAddExpense: (expense: Expense) => void;
 
 };
 
@@ -50,18 +42,28 @@ const categories = [
   },
 
   {
-    value:"hotel",
-    label:"🏨 Hotel",
-  },
-
-  {
     value:"transport",
     label:"🚗 Transport",
   },
 
   {
-    value:"tickets",
-    label:"🎟 Tickets",
+    value:"hotel",
+    label:"🏨 Hotel",
+  },
+
+  {
+    value:"drinks",
+    label:"🍺 Drinks",
+  },
+
+  {
+    value:"activity",
+    label:"🎟 Activity",
+  },
+
+  {
+    value:"shopping",
+    label:"🛒 Shopping",
   },
 
   {
@@ -78,102 +80,101 @@ const categories = [
 
 
 
-
 export default function AddExpenseModal({
 
-  open,
+open,
 
-  onClose,
+onClose,
 
-  onAddExpense,
+onAddExpense,
 
 }:AddExpenseModalProps){
 
 
 
+const {
 
+currentEvent,
 
-  const {
+}=useEvent();
 
-    currentEvent,
 
-  } = useEvent();
 
 
 
 
 
+const [title,setTitle]=useState("");
 
+const [description,setDescription]=useState("");
 
-  const [
+const [category,setCategory]=useState("food");
 
-    title,
+const [amount,setAmount]=useState("");
 
-    setTitle
+const [paidBy,setPaidBy]=useState("");
 
-  ] = useState("");
+const [participants,setParticipants]=useState<string[]>([]);
 
 
 
 
 
-  const [
 
-    amount,
 
-    setAmount
 
-  ] = useState("");
 
+if(!open){
 
+return null;
 
+}
 
 
-  const [
 
-    paidBy,
 
-    setPaidBy
 
-  ] = useState("");
 
 
 
 
+const toggleParticipant=(name:string)=>{
 
-  const [
 
-    category,
+setParticipants(previous=>
 
-    setCategory
 
-  ] = useState("food");
+previous.includes(name)
 
 
+?
 
 
+previous.filter(
 
-  const [
+item=>item!==name
 
-    selectedMembers,
+)
 
-    setSelectedMembers
 
-  ] = useState<string[]>([]);
+:
 
 
+[
 
+...previous,
 
+name
 
+]
 
 
+);
 
 
-  if(!open){
+};
 
-    return null;
 
-  }
 
 
 
@@ -181,55 +182,52 @@ export default function AddExpenseModal({
 
 
 
-  const members =
+const handleSave=()=>{
 
-    currentEvent?.members || [];
 
 
+if(
 
+!title ||
 
+!amount ||
 
+!paidBy ||
 
+participants.length===0
 
+){
 
 
-  const toggleMember = (
+alert(
 
-    name:string
+"Please fill all required fields"
 
-  )=>{
+);
 
 
-    setSelectedMembers((previous)=>
+return;
 
-      previous.includes(name)
 
-      ?
+}
 
-      previous.filter(
 
-        (item)=>
 
-          item !== name
 
-      )
 
-      :
 
-      [
 
-        ...previous,
+const totalAmount=
 
-        name
+Number(amount);
 
-      ]
 
 
-    );
 
 
-  };
+const splitAmount=
 
+totalAmount / participants.length;
 
 
 
@@ -238,125 +236,121 @@ export default function AddExpenseModal({
 
 
 
-  const splitAmount =
+const expense:Expense={
 
 
-    selectedMembers.length > 0
 
+id:
 
-    ?
+crypto.randomUUID(),
 
 
-    Number(amount || 0) /
 
-    selectedMembers.length
 
+title,
 
-    :
 
 
-    0;
 
+description,
 
 
 
 
+category,
 
 
 
 
-  const handleSave = ()=>{
+amount:
 
+totalAmount,
 
 
-    if(
 
-      !title ||
 
-      !amount ||
+paidBy,
 
-      !paidBy ||
 
-      selectedMembers.length === 0
 
-    ){
 
+participants:
 
-      alert(
+participants.map(name=>(
 
-        "Please complete all fields"
 
-      );
+{
 
+name,
 
-      return;
+amount:
 
+Number(
 
-    }
+splitAmount.toFixed(2)
 
+)
 
+}
 
 
+)),
 
 
 
 
+createdAt:
 
-    onAddExpense({
+new Date().toISOString(),
 
 
 
-      title,
 
+updatedAt:
 
+new Date().toISOString(),
 
-      amount:
 
-        Number(amount),
 
+};
 
 
 
-      paidBy,
 
 
 
 
 
 
-      participants:
+onAddExpense(expense);
 
-        selectedMembers.map(
 
-          (name)=>(
 
 
-            {
 
-              name,
 
 
-              amount:
+setTitle("");
 
-                Number(
+setDescription("");
 
-                  splitAmount.toFixed(2)
+setCategory("food");
 
-                )
+setAmount("");
 
+setPaidBy("");
 
-            }
+setParticipants([]);
 
 
-          )
 
-        )
 
 
+onClose();
 
-    });
 
 
+};
 
 
 
@@ -364,64 +358,73 @@ export default function AddExpenseModal({
 
 
 
-    setTitle("");
 
-    setAmount("");
 
-    setPaidBy("");
+return (
 
-    setSelectedMembers([]);
+<div
 
-    setCategory("food");
+className="
+fixed
+inset-0
+z-50
+flex
+items-center
+justify-center
+bg-black/50
+p-4
+"
 
+>
 
 
-  };
 
+<div
 
+className="
+w-full
+max-w-xl
+rounded-2xl
+bg-white
+p-6
+shadow-xl
+"
 
+>
 
 
 
 
 
+<h2
 
+className="
+mb-6
+text-2xl
+font-bold
+"
 
+>
 
+Add Expense
 
+</h2>
 
-  return (
 
-    <div
 
-      className="
-        fixed
-        inset-0
-        z-50
-        flex
-        items-center
-        justify-center
-        bg-black/50
-        p-4
-      "
 
-    >
 
 
 
 
 
-      <div
+<div
 
-        className="
-          w-full
-          max-w-xl
-          rounded-2xl
-          bg-white
-          shadow-xl
-        "
+className="
+space-y-4
+"
 
-      >
+>
 
 
 
@@ -429,535 +432,406 @@ export default function AddExpenseModal({
 
 
 
-        <div
+<input
 
-          className="
-            border-b
-            px-6
-            py-5
-          "
+placeholder="Expense title"
 
-        >
+value={title}
 
+onChange={(e)=>
 
-          <h2
+setTitle(e.target.value)
 
-            className="
-              text-2xl
-              font-bold
-            "
+}
 
-          >
+className="
+w-full
+rounded-lg
+border
+p-3
+"
 
-            Add Expense
+/>
 
-          </h2>
 
 
-        </div>
 
 
 
 
+<textarea
 
+placeholder="Description"
 
+value={description}
 
+onChange={(e)=>
 
+setDescription(e.target.value)
 
-        <div
+}
 
-          className="
-            space-y-5
-            p-6
-          "
+className="
+w-full
+rounded-lg
+border
+p-3
+"
 
-        >
+/>
 
 
 
 
 
-          <input
 
 
-            value={title}
+<select
 
+value={category}
 
-            onChange={(e)=>
+onChange={(e)=>
 
-              setTitle(
+setCategory(e.target.value)
 
-                e.target.value
+}
 
-              )
+className="
+w-full
+rounded-lg
+border
+p-3
+"
 
-            }
+>
 
 
-            placeholder="Expense name"
+{
 
+categories.map(item=>(
 
-            className="
-              w-full
-              rounded-lg
-              border
-              p-3
-            "
 
+<option
 
-          />
+key={item.value}
 
+value={item.value}
 
+>
 
+{item.label}
 
+</option>
 
 
+))
 
+}
 
 
-          <div
+</select>
 
-            className="
-              grid
-              grid-cols-2
-              gap-4
-            "
 
-          >
 
 
 
-            <select
 
 
-              value={category}
+<input
 
+type="number"
 
-              onChange={(e)=>
+placeholder="Amount"
 
-                setCategory(
+value={amount}
 
-                  e.target.value
+onChange={(e)=>
 
-                )
+setAmount(e.target.value)
 
-              }
+}
 
+className="
+w-full
+rounded-lg
+border
+p-3
+"
 
-              className="
-                rounded-lg
-                border
-                p-3
-              "
+/>
 
 
-            >
 
 
 
-              {
 
-                categories.map(
 
-                  (item)=>(
 
 
-                    <option
+<label
 
-                      key={item.value}
+className="
+font-medium
+"
 
-                      value={item.value}
+>
 
-                    >
+Paid By
 
-                      {item.label}
+</label>
 
-                    </option>
 
 
-                  )
+<select
 
-                )
+value={paidBy}
 
-              }
+onChange={(e)=>
 
+setPaidBy(e.target.value)
 
+}
 
-            </select>
+className="
+w-full
+rounded-lg
+border
+p-3
+"
 
+>
 
 
+<option value="">
 
+Select member
 
+</option>
 
 
 
 
-            <input
+{
 
+currentEvent?.members.map(member=>(
 
-              type="number"
 
+<option
 
-              value={amount}
+key={member.id}
 
+value={member.name}
 
-              onChange={(e)=>
+>
 
-                setAmount(
+{member.name}
 
-                  e.target.value
+</option>
 
-                )
 
-              }
+))
 
 
-              placeholder="Amount"
+}
 
 
-              className="
-                rounded-lg
-                border
-                p-3
-              "
+</select>
 
 
-            />
 
 
 
 
-          </div>
 
 
 
+<div>
 
 
+<p
 
+className="
+mb-2
+font-medium
+"
 
+>
 
+Split Between
 
-          <select
+</p>
 
 
-            value={paidBy}
 
 
-            onChange={(e)=>
 
-              setPaidBy(
+<div
 
-                e.target.value
+className="
+space-y-2
+"
 
-              )
+>
 
-            }
 
+{
 
-            className="
-              w-full
-              rounded-lg
-              border
-              p-3
-            "
+currentEvent?.members.map(member=>(
 
 
-          >
+<label
 
+key={member.id}
 
-            <option value="">
+className="
+flex
+items-center
+gap-3
+rounded-lg
+border
+p-3
+"
 
-              Paid By
+>
 
-            </option>
 
 
+<input
 
+type="checkbox"
 
+checked={
 
-            {
+participants.includes(
 
-              members.map(
+member.name
 
-                (member)=>(
+)
 
+}
 
-                  <option
+onChange={()=>
 
 
-                    key={member.id}
+toggleParticipant(
 
+member.name
 
-                    value={member.name}
+)
 
 
-                  >
+}
 
-                    {member.name}
 
+/>
 
-                  </option>
 
 
-                )
+<span>
 
-              )
+{member.name}
 
-            }
+</span>
 
 
 
-          </select>
+</label>
 
 
 
+))
 
 
+}
 
 
+</div>
 
 
+</div>
 
 
 
-          <div>
 
 
-            <h3
 
-              className="
-                mb-3
-                font-medium
-              "
 
-            >
+</div>
 
-              Split Between
 
-            </h3>
 
 
 
 
 
 
-            <div
 
-              className="
-                space-y-2
-              "
+<div
 
-            >
+className="
+mt-6
+flex
+justify-end
+gap-3
+"
 
+>
 
 
-              {
+<button
 
-                members.map(
+onClick={onClose}
 
-                  (member)=>(
+className="
+rounded-lg
+border
+px-5
+py-2
+"
 
+>
 
-                    <label
+Cancel
 
+</button>
 
-                      key={member.id}
 
 
-                      className="
-                        flex
-                        items-center
-                        gap-3
-                        rounded-lg
-                        border
-                        p-3
-                      "
 
 
-                    >
+<button
 
+onClick={handleSave}
 
+className="
+rounded-lg
+bg-blue-600
+px-5
+py-2
+text-white
+"
 
-                      <input
+>
 
+Save Expense
 
-                        type="checkbox"
+</button>
 
 
-                        checked={
 
-                          selectedMembers.includes(
+</div>
 
-                            member.name
 
-                          )
 
-                        }
 
 
-                        onChange={()=>
+</div>
 
 
-                          toggleMember(
+</div>
 
-                            member.name
 
-                          )
+);
 
-
-                        }
-
-
-                      />
-
-
-
-
-                      {member.name}
-
-
-
-
-
-                    </label>
-
-
-                  )
-
-                )
-
-              }
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-
-
-
-
-
-
-          <div
-
-            className="
-              rounded-lg
-              bg-blue-50
-              p-4
-            "
-
-          >
-
-            Each person pays:
-
-            <strong className="ml-2">
-
-              ${splitAmount.toFixed(2)}
-
-            </strong>
-
-
-          </div>
-
-
-
-
-
-        </div>
-
-
-
-
-
-
-
-
-
-        <div
-
-          className="
-            flex
-            justify-end
-            gap-3
-            border-t
-            px-6
-            py-4
-          "
-
-        >
-
-
-
-          <button
-
-
-            onClick={onClose}
-
-
-            className="
-              rounded-lg
-              border
-              px-5
-              py-2
-            "
-
-
-          >
-
-            Cancel
-
-          </button>
-
-
-
-
-
-
-
-          <button
-
-
-            onClick={handleSave}
-
-
-            className="
-              rounded-lg
-              bg-blue-600
-              px-5
-              py-2
-              text-white
-            "
-
-
-          >
-
-            Save Expense
-
-          </button>
-
-
-
-
-
-        </div>
-
-
-
-
-
-      </div>
-
-
-
-    </div>
-
-  );
 
 }

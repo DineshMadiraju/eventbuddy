@@ -1,16 +1,19 @@
 "use client";
 
-import { useEvent } from "@/context/EventContext";
+
+import {
+  useEvent
+} from "@/context/EventContext";
 
 
 
-type Settlement = {
 
-  from: string;
 
-  to: string;
 
-  amount: number;
+
+type BalanceMap = {
+
+  [name:string]:number;
 
 };
 
@@ -19,102 +22,97 @@ type Settlement = {
 
 
 
-export default function EventSettlements() {
 
+export default function EventSettlements(){
 
-  const {
 
-    currentEvent,
 
-  } = useEvent();
 
 
+const {
 
+currentEvent,
 
+}=useEvent();
 
 
 
-  if(!currentEvent){
 
 
-    return (
 
-      <section
 
-        className="
-          rounded-xl
-          border
-          bg-white
-          p-6
-        "
 
-      >
+if(!currentEvent){
 
-        <p className="text-gray-500">
 
-          Event not loaded.
+return (
 
-        </p>
+<section
 
+className="
+rounded-xl
+border
+bg-white
+p-6
+"
 
-      </section>
+>
 
-    );
+<p className="text-gray-500">
 
+Event not loaded.
 
-  }
+</p>
 
 
+</section>
 
+);
 
 
+}
 
 
 
 
-  const balances: Record<string, number> = {};
 
 
 
 
 
+const members =
 
+currentEvent.members || [];
 
 
-  currentEvent.members.forEach(
 
-    (member)=>{
+const expenses =
 
+currentEvent.expenses || [];
 
-      balances[member.name] = 0;
 
 
-    }
 
-  );
 
 
 
 
 
+const balances:BalanceMap = {};
 
 
 
 
-  currentEvent.expenses.forEach(
 
-    (expense)=>{
 
 
-      // Person who paid gets credit
+members.forEach(member=>{
 
-      balances[expense.paidBy] =
 
-        (balances[expense.paidBy] || 0)
+balances[member.name]=0;
 
-        +
 
-        expense.amount;
+});
 
 
 
@@ -122,164 +120,159 @@ export default function EventSettlements() {
 
 
 
-      // Everyone owes their share
 
-      expense.participants.forEach(
 
-        (participant)=>{
+expenses.forEach(expense=>{
 
 
-          balances[participant.name] =
 
-            (balances[participant.name] || 0)
+// payer receives money
 
-            -
+balances[expense.paidBy] +=
 
-            participant.amount;
+expense.amount;
 
 
-        }
 
-      );
 
 
+// participants owe money
 
-    }
+expense.participants.forEach(person=>{
 
-  );
 
+balances[person.name] -=
 
+person.amount;
 
 
+});
 
 
+});
 
 
 
-  const creditors =
 
-    Object.entries(balances)
 
-      .filter(
 
-        ([,amount]) => amount > 0
 
-      )
 
-      .map(
 
-        ([name,amount])=>(
+const creditors = Object.entries(balances)
 
-          {
+.filter(
 
-            name,
+([,amount])=>
 
-            amount,
+amount > 0
 
-          }
+)
 
-        )
+.map(([name,amount])=>({
 
-      );
+name,
 
+amount
 
+}));
 
 
 
 
 
 
-  const debtors =
 
-    Object.entries(balances)
+const debtors = Object.entries(balances)
 
-      .filter(
+.filter(
 
-        ([,amount]) => amount < 0
+([,amount])=>
 
-      )
+amount < 0
 
-      .map(
+)
 
-        ([name,amount])=>(
+.map(([name,amount])=>({
 
-          {
+name,
 
-            name,
+amount:Math.abs(amount)
 
-            amount: Math.abs(amount),
+}));
 
-          }
 
-        )
 
-      );
 
 
 
 
 
 
+const settlements:{
 
 
+from:string;
 
-  const settlements: Settlement[] = [];
+to:string;
 
+amount:number;
 
 
+}[]=[];
 
 
 
 
 
 
-  debtors.forEach(
 
-    (debtor)=>{
 
 
-      let remaining = debtor.amount;
+let creditorIndex=0;
 
+let debtorIndex=0;
 
 
 
 
 
-      creditors.forEach(
 
-        (creditor)=>{
 
 
-          if(remaining <= 0){
+while(
 
-            return;
+creditorIndex < creditors.length &&
 
-          }
+debtorIndex < debtors.length
 
+){
 
 
 
+const creditor =
 
+creditors[creditorIndex];
 
-          if(creditor.amount <= 0){
 
-            return;
 
-          }
+const debtor =
 
+debtors[debtorIndex];
 
 
 
 
 
+const payment =
 
-          const payment = Math.min(
+Math.min(
 
-            remaining,
+creditor.amount,
 
-            creditor.amount
+debtor.amount
 
-          );
+);
 
 
 
@@ -287,15 +280,15 @@ export default function EventSettlements() {
 
 
 
-          settlements.push({
+settlements.push({
 
-            from: debtor.name,
+from:debtor.name,
 
-            to: creditor.name,
+to:creditor.name,
 
-            amount: payment,
+amount:payment,
 
-          });
+});
 
 
 
@@ -303,234 +296,214 @@ export default function EventSettlements() {
 
 
 
-          remaining -= payment;
+creditor.amount -= payment;
 
 
-          creditor.amount -= payment;
 
 
 
-        }
+debtor.amount -= payment;
 
-      );
 
 
 
-    }
 
-  );
 
 
+if(
 
+creditor.amount === 0
 
+){
 
+creditorIndex++;
 
+}
 
 
 
-  return (
+if(
 
-    <section
+debtor.amount === 0
 
-      className="
-        rounded-xl
-        border
-        bg-white
-        p-6
-      "
+){
 
-    >
+debtorIndex++;
 
+}
 
 
 
+}
 
-      <h2
 
-        className="
-          text-2xl
-          font-bold
-          text-gray-900
-        "
 
-      >
 
-        Settlements
 
-      </h2>
 
 
 
 
+return (
 
+<section
 
+className="
+rounded-2xl
+border
+bg-white
+p-6
+"
 
-      <p
+>
 
-        className="
-          mt-1
-          mb-6
-          text-sm
-          text-gray-500
-        "
 
-      >
 
-        Final payment breakdown between members.
 
-      </p>
+<h2
 
+className="
+mb-5
+text-2xl
+font-bold
+"
 
+>
 
+Settlements
 
+</h2>
 
 
 
 
 
-      {
 
-        settlements.length === 0 ?
 
+{
 
-        (
+settlements.length===0
 
-          <div
+?
 
-            className="
-              rounded-xl
-              bg-gray-50
-              p-5
-              text-center
-              text-gray-500
-            "
+(
 
-          >
+<div
 
-            No pending settlements.
+className="
+rounded-xl
+bg-gray-50
+p-5
+text-gray-500
+"
 
-          </div>
+>
 
+Everyone is settled 🎉
 
-        )
+</div>
 
+)
 
-        :
+:
 
+(
 
-        (
+<div
 
-          <div
+className="
+space-y-3
+"
 
-            className="
-              space-y-4
-            "
+>
 
-          >
 
+{
 
+settlements.map((item,index)=>(
 
-            {
 
-              settlements.map(
+<div
 
-                (settlement,index)=>(
+key={index}
 
+className="
+rounded-xl
+bg-gray-50
+p-4
+"
 
-                  <div
+>
 
-                    key={index}
 
-                    className="
-                      flex
-                      items-center
-                      justify-between
-                      rounded-xl
-                      bg-gray-50
-                      p-4
-                    "
+<p className="text-lg">
 
-                  >
 
+<b>
 
+{item.from}
 
+</b>
 
 
-                    <div>
+{" owes "}
 
 
-                      <span className="font-semibold">
+<b>
 
-                        {settlement.from}
+{item.to}
 
-                      </span>
+</b>
 
 
+</p>
 
-                      <span className="mx-2 text-gray-500">
 
-                        pays
 
-                      </span>
 
 
+<p
 
-                      <span className="font-semibold">
+className="
+mt-1
+text-xl
+font-bold
+text-blue-600
+"
 
-                        {settlement.to}
+>
 
-                      </span>
+${item.amount.toFixed(2)}
 
+</p>
 
 
-                    </div>
 
+</div>
 
 
 
+))
 
 
+}
 
-                    <div
 
-                      className="
-                        font-bold
-                        text-green-600
-                      "
 
-                    >
+</div>
 
-                      ${settlement.amount.toFixed(2)}
+)
 
-                    </div>
+}
 
 
 
-                  </div>
 
 
-                )
+</section>
 
-              )
 
-            }
+);
 
-
-
-          </div>
-
-
-        )
-
-      }
-
-
-
-
-
-
-    </section>
-
-  );
 
 }

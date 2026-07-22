@@ -1,70 +1,30 @@
 "use client";
 
+
 import {
+
   createContext,
+
   useContext,
+
   useState,
+
   ReactNode,
+
 } from "react";
 
 
+import {
 
-export type Member = {
+  Event,
 
-  id:string;
+  Member,
 
-  name:string;
+  Expense,
 
-  status:"accepted" | "pending";
-
-};
-
+} from "./EventTypes";
 
 
-export type Expense = {
-
-  title:string;
-
-  amount:number;
-
-  paidBy:string;
-
-  participants:{
-
-    name:string;
-
-    amount:number;
-
-  }[];
-
-};
-
-
-
-
-export type Event = {
-
-  id:string;
-
-  title:string;
-
-  description:string;
-
-  startDate:string;
-
-  startTime:string;
-
-  endDate:string;
-
-  endTime:string;
-
-  location:string;
-
-  members:Member[];
-
-  expenses:Expense[];
-
-};
 
 
 
@@ -73,9 +33,11 @@ export type Event = {
 type EventContextType = {
 
 
-  events:Event[];
+  events: Event[];
 
-  currentEvent:Event|null;
+
+  currentEvent: Event | null;
+
 
 
   createEvent:(
@@ -86,11 +48,13 @@ type EventContextType = {
 
 
 
+
   getEventById:(
 
     id:string
 
-  )=>Event|undefined;
+  )=>Event | undefined;
+
 
 
 
@@ -102,6 +66,7 @@ type EventContextType = {
 
 
 
+
   addMemberToEvent:(
 
     member:Member
@@ -110,9 +75,33 @@ type EventContextType = {
 
 
 
+
+
   addExpense:(
 
     expense:Expense
+
+  )=>void;
+
+
+
+
+
+  updateExpense:(
+
+    id:string,
+
+    expense:Expense
+
+  )=>void;
+
+
+
+
+
+  deleteExpense:(
+
+    id:string
 
   )=>void;
 
@@ -125,9 +114,12 @@ type EventContextType = {
 
 
 
+
+
 const EventContext =
 
 createContext<EventContextType | undefined>(undefined);
+
 
 
 
@@ -150,7 +142,10 @@ children:ReactNode;
 
 
 
-const [events,setEvents] = useState<Event[]>([
+const [events,setEvents] =
+
+useState<Event[]>([
+
 
 {
 
@@ -169,6 +164,7 @@ endDate:"2026-08-25",
 endTime:"18:00",
 
 location:"Miami Beach",
+
 
 
 members:[
@@ -211,17 +207,28 @@ status:"accepted",
 
 
 
+
+
 expenses:[
+
 
 {
 
+id:"expense-1",
+
 title:"Dinner",
+
+description:"Welcome dinner",
+
+category:"food",
 
 amount:120,
 
 paidBy:"Dinesh",
 
+
 participants:[
+
 
 {
 
@@ -231,6 +238,7 @@ amount:40,
 
 },
 
+
 {
 
 name:"John",
@@ -238,6 +246,7 @@ name:"John",
 amount:40,
 
 },
+
 
 {
 
@@ -247,11 +256,25 @@ amount:40,
 
 },
 
-],
-
-},
 
 ],
+
+
+createdAt:
+
+new Date().toISOString(),
+
+
+updatedAt:
+
+new Date().toISOString(),
+
+
+}
+
+
+]
+
 
 
 }
@@ -266,7 +289,14 @@ amount:40,
 
 
 
-const [currentEvent,setCurrentEventState] =
+
+const [
+
+currentEvent,
+
+setCurrentEventState
+
+] =
 
 useState<Event|null>(null);
 
@@ -278,10 +308,19 @@ useState<Event|null>(null);
 
 
 
-const createEvent=(event:Event)=>{
 
 
-setEvents((previous)=>[
+
+// CREATE EVENT
+
+const createEvent=(
+
+event:Event
+
+)=>{
+
+
+setEvents(previous=>[
 
 ...previous,
 
@@ -300,12 +339,21 @@ event
 
 
 
-const getEventById=(id:string)=>{
+
+
+
+// FIND EVENT
+
+const getEventById=(
+
+id:string
+
+)=>{
 
 
 return events.find(
 
-(event)=>
+event=>
 
 event.id===id
 
@@ -322,16 +370,28 @@ event.id===id
 
 
 
-const setCurrentEvent=(id:string)=>{
 
 
-const event = events.find(
+// LOAD CURRENT EVENT
 
-(item)=>
+const setCurrentEvent=(
+
+id:string
+
+)=>{
+
+
+const event =
+
+events.find(
+
+item=>
 
 item.id===id
 
 );
+
+
 
 
 
@@ -344,12 +404,13 @@ setCurrentEventState({
 
 members:[...event.members],
 
-expenses:[...event.expenses]
+expenses:[...event.expenses],
 
 });
 
 
 }
+
 
 
 };
@@ -362,20 +423,42 @@ expenses:[...event.expenses]
 
 
 
-const addMemberToEvent=(member:Member)=>{
 
 
-setEvents((previous)=>{
+
+// ADD MEMBER
+
+const addMemberToEvent=(
+
+member:Member
+
+)=>{
 
 
-const updatedEvents = previous.map((event)=>{
+if(!currentEvent){
+
+return;
+
+}
 
 
-if(event.id !== currentEvent?.id){
+
+
+
+setEvents(previous=>{
+
+
+const updatedEvents =
+
+previous.map(event=>{
+
+
+if(event.id !== currentEvent.id){
 
 return event;
 
 }
+
 
 
 
@@ -404,11 +487,13 @@ member
 
 
 
-const updatedEvent = updatedEvents.find(
+const updatedEvent =
 
-(event)=>
+updatedEvents.find(
 
-event.id===currentEvent?.id
+event=>
+
+event.id===currentEvent.id
 
 );
 
@@ -419,7 +504,15 @@ event.id===currentEvent?.id
 if(updatedEvent){
 
 
-setCurrentEventState(updatedEvent);
+setCurrentEventState({
+
+...updatedEvent,
+
+members:[...updatedEvent.members],
+
+expenses:[...updatedEvent.expenses],
+
+});
 
 
 }
@@ -430,9 +523,7 @@ setCurrentEventState(updatedEvent);
 return updatedEvents;
 
 
-
 });
-
 
 
 };
@@ -445,20 +536,41 @@ return updatedEvents;
 
 
 
-const addExpense=(expense:Expense)=>{
 
 
-setEvents((previous)=>{
+// ADD EXPENSE
+
+const addExpense=(
+
+expense:Expense
+
+)=>{
 
 
-const updatedEvents = previous.map((event)=>{
+if(!currentEvent){
+
+return;
+
+}
 
 
-if(event.id !== currentEvent?.id){
+
+
+
+setEvents(previous=>{
+
+
+const updatedEvents =
+
+previous.map(event=>{
+
+
+if(event.id !== currentEvent.id){
 
 return event;
 
 }
+
 
 
 
@@ -487,11 +599,14 @@ expense
 
 
 
-const updatedEvent = updatedEvents.find(
 
-(event)=>
+const updatedEvent =
 
-event.id===currentEvent?.id
+updatedEvents.find(
+
+event=>
+
+event.id===currentEvent.id
 
 );
 
@@ -502,10 +617,271 @@ event.id===currentEvent?.id
 if(updatedEvent){
 
 
-setCurrentEventState(updatedEvent);
+setCurrentEventState({
+
+...updatedEvent,
+
+members:[...updatedEvent.members],
+
+expenses:[...updatedEvent.expenses],
+
+});
 
 
 }
+
+
+
+
+
+return updatedEvents;
+
+
+});
+
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+// UPDATE EXPENSE
+
+const updateExpense=(
+
+id:string,
+
+updatedExpense:Expense
+
+)=>{
+
+
+if(!currentEvent){
+
+return;
+
+}
+
+
+
+
+
+setEvents(previous=>{
+
+
+const updatedEvents =
+
+previous.map(event=>{
+
+
+if(event.id !== currentEvent.id){
+
+return event;
+
+}
+
+
+
+
+
+return {
+
+
+...event,
+
+
+expenses:
+
+event.expenses.map(expense=>
+
+
+expense.id===id
+
+?
+
+updatedExpense
+
+:
+
+expense
+
+
+)
+
+
+};
+
+
+});
+
+
+
+
+
+
+
+
+const updatedEvent =
+
+updatedEvents.find(
+
+event=>
+
+event.id===currentEvent.id
+
+);
+
+
+
+
+
+
+if(updatedEvent){
+
+
+setCurrentEventState({
+
+...updatedEvent,
+
+members:[...updatedEvent.members],
+
+expenses:[...updatedEvent.expenses],
+
+});
+
+
+}
+
+
+
+
+
+return updatedEvents;
+
+
+
+});
+
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+// DELETE EXPENSE
+
+const deleteExpense=(
+
+id:string
+
+)=>{
+
+
+if(!currentEvent){
+
+return;
+
+}
+
+
+
+
+
+
+
+setEvents(previous=>{
+
+
+const updatedEvents =
+
+previous.map(event=>{
+
+
+if(event.id !== currentEvent.id){
+
+return event;
+
+}
+
+
+
+
+
+return {
+
+
+...event,
+
+
+expenses:
+
+event.expenses.filter(
+
+expense=>
+
+expense.id!==id
+
+)
+
+
+};
+
+
+
+});
+
+
+
+
+
+
+
+const updatedEvent =
+
+updatedEvents.find(
+
+event=>
+
+event.id===currentEvent.id
+
+);
+
+
+
+
+
+if(updatedEvent){
+
+
+setCurrentEventState({
+
+...updatedEvent,
+
+members:[...updatedEvent.members],
+
+expenses:[...updatedEvent.expenses],
+
+});
+
+
+}
+
 
 
 
@@ -532,23 +908,39 @@ return (
 
 <EventContext.Provider
 
+
 value={{
+
 
 events,
 
+
 currentEvent,
+
 
 createEvent,
 
+
 getEventById,
+
 
 setCurrentEvent,
 
+
 addMemberToEvent,
+
 
 addExpense,
 
+
+updateExpense,
+
+
+deleteExpense,
+
+
 }}
+
 
 >
 
@@ -558,7 +950,9 @@ addExpense,
 
 </EventContext.Provider>
 
+
 );
+
 
 
 }
@@ -569,20 +963,28 @@ addExpense,
 
 
 
+
+
 export function useEvent(){
 
 
-const context = useContext(EventContext);
+const context =
+
+useContext(EventContext);
+
+
 
 
 
 if(!context){
+
 
 throw new Error(
 
 "useEvent must be used inside EventProvider"
 
 );
+
 
 }
 

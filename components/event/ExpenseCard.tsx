@@ -1,141 +1,461 @@
 "use client";
 
-type Participant = {
-  name: string;
-  amount: number;
-};
+
+import {
+  useEvent
+} from "@/context/EventContext";
+
+
+
+
 
 type ExpenseCardProps = {
-  title: string;
-  amount: number;
-  paidBy: string;
-  participants: Participant[];
+
+  id:string;
+
+  title:string;
+
+  description?:string;
+
+  category:string;
+
+  amount:number;
+
+  paidBy:string;
+
+  participants:{
+    name:string;
+    amount:number;
+  }[];
+
+  onEdit:()=>void;
+
 };
 
+
+
+
+
+
+
+
+
+const categoryIcons:{[key:string]:string} = {
+
+
+food:"🍕",
+
+transport:"🚗",
+
+hotel:"🏨",
+
+drinks:"🍺",
+
+activity:"🎟",
+
+shopping:"🛒",
+
+other:"📦",
+
+};
+
+
+
+
+
+
+
+
 export default function ExpenseCard({
-  title,
-  amount,
-  paidBy,
-  participants,
-}: ExpenseCardProps) {
-  const getIcon = () => {
-    const value = title.toLowerCase();
 
-    if (value.includes("food") || value.includes("dinner") || value.includes("lunch") || value.includes("breakfast")) {
-      return "🍕";
-    }
+id,
 
-    if (value.includes("hotel")) {
-      return "🏨";
-    }
+title,
 
-    if (value.includes("gas") || value.includes("fuel")) {
-      return "⛽";
-    }
+description,
 
-    if (value.includes("flight") || value.includes("ticket")) {
-      return "🎟️";
-    }
+category,
 
-    if (value.includes("shopping")) {
-      return "🛍️";
-    }
+amount,
 
-    return "💳";
-  };
+paidBy,
 
-  return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+participants,
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
+onEdit,
 
-        <div className="flex items-center gap-4">
+}:ExpenseCardProps){
 
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-3xl">
-            {getIcon()}
-          </div>
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {title}
-            </h3>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Paid by{" "}
-              <span className="font-medium text-gray-800">
-                {paidBy}
-              </span>
-            </p>
-          </div>
 
-        </div>
 
-        <div className="text-right">
-          <p className="text-2xl font-bold text-blue-600">
-            ${amount.toFixed(2)}
-          </p>
+const {
 
-          <button className="mt-3 text-xl text-gray-400 hover:text-gray-700">
-            ⋮
-          </button>
-        </div>
+deleteExpense,
 
-      </div>
+}=useEvent();
 
-      {/* Divider */}
-      <div className="my-5 border-t" />
 
-      {/* Participants */}
-      <div>
 
-        <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-          Split Between
-        </h4>
 
-        <div className="space-y-3">
 
-          {participants.map((participant) => (
 
-            <div
-              key={participant.name}
-              className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3"
-            >
 
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 font-medium">
-                  {participant.name.charAt(0).toUpperCase()}
-                </div>
 
-                <span className="font-medium text-gray-800">
-                  {participant.name}
-                </span>
-              </div>
+const handleDelete=()=>{
 
-              <span className="font-semibold text-gray-700">
-                ${participant.amount.toFixed(2)}
-              </span>
 
-            </div>
+const confirmDelete=
 
-          ))}
+window.confirm(
 
-        </div>
+"Delete this expense?"
 
-      </div>
+);
 
-      {/* Footer */}
-      <div className="mt-5 flex items-center justify-between border-t pt-4 text-sm text-gray-500">
 
-        <span>Today</span>
 
-        <span>
-          {participants.length} participant
-          {participants.length !== 1 ? "s" : ""}
-        </span>
+if(confirmDelete){
 
-      </div>
+deleteExpense(id);
 
-    </div>
-  );
+}
+
+
+};
+
+
+
+
+
+
+
+return (
+
+<div
+
+className="
+rounded-xl
+border
+bg-white
+p-5
+shadow-sm
+"
+
+>
+
+
+
+
+
+
+<div
+
+className="
+flex
+justify-between
+"
+
+>
+
+
+
+<div>
+
+
+
+<div
+
+className="
+flex
+items-center
+gap-2
+"
+
+>
+
+
+<span className="text-2xl">
+
+{
+categoryIcons[category]
+||
+"📦"
+}
+
+</span>
+
+
+
+<h3
+
+className="
+text-xl
+font-bold
+"
+
+>
+
+{title}
+
+</h3>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+{
+
+description &&
+
+<p
+
+className="
+mt-2
+text-sm
+text-gray-500
+"
+
+>
+
+{description}
+
+</p>
+
+}
+
+
+
+
+
+<p
+
+className="
+mt-3
+text-sm
+"
+
+>
+
+Paid by:
+
+<b>
+
+ {paidBy}
+
+</b>
+
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+text-right
+"
+
+>
+
+
+
+<p
+
+className="
+text-2xl
+font-bold
+"
+
+>
+
+${amount.toFixed(2)}
+
+</p>
+
+
+
+
+
+
+
+<div
+
+className="
+mt-3
+flex
+gap-2
+"
+
+>
+
+
+<button
+
+onClick={onEdit}
+
+className="
+rounded-lg
+border
+px-3
+py-1
+text-sm
+"
+
+>
+
+✏ Edit
+
+</button>
+
+
+
+
+<button
+
+onClick={handleDelete}
+
+className="
+rounded-lg
+bg-red-500
+px-3
+py-1
+text-sm
+text-white
+"
+
+>
+
+🗑 Delete
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+className="
+mt-5
+border-t
+pt-4
+"
+
+>
+
+
+
+<p
+
+className="
+mb-2
+font-medium
+"
+
+>
+
+Split Between
+
+</p>
+
+
+
+
+
+
+{
+
+participants.map((person,index)=>(
+
+
+<div
+
+key={index}
+
+className="
+flex
+justify-between
+rounded-lg
+bg-gray-50
+px-3
+py-2
+"
+
+>
+
+
+<span>
+
+{person.name}
+
+</span>
+
+
+<span>
+
+${person.amount.toFixed(2)}
+
+</span>
+
+
+
+</div>
+
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+
+
+
+</div>
+
+);
+
+
 }
